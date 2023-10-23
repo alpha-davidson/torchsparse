@@ -1,4 +1,6 @@
-# TorchSparse
+# TorchSparse for the AT-TPC 
+
+This repo build off of [TorchSparse](http://torchsparse.mit.edu/) for building AT-TPC models.
 
 TorchSparse is a high-performance neural network library for point cloud processing.
 
