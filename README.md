@@ -4,6 +4,13 @@ This repo build off of [TorchSparse](http://torchsparse.mit.edu/) for building A
 
 TorchSparse is a high-performance neural network library for point cloud processing.
 
+## Required packages:
+- backports.cached_property
+- numpy
+- tqdm
+- typing-extensions
+- wheel
+
 ### [website](http://torchsparse.mit.edu/) | [paper](https://arxiv.org/abs/2204.10319) | [presentation](https://www.youtube.com/watch?v=IIh4EwmcLUs) | [documents](http://torchsparse-docs.github.io/) | [pypi server](http://pypi.hanlab.ai/simple/torchsparse)
 
 
