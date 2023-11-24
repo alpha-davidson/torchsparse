@@ -19,8 +19,9 @@ def plotting(current_datetime, epochs):
     
     training_losses = np.load(LOSS_PATH + tr_filename)
     validation_losses = np.load(LOSS_PATH + v_filename)
-    
+
     num_epochs = epochs
+
     epochs = range(1, num_epochs + 1)
     
     plt.figure(figsize=(10, 6))

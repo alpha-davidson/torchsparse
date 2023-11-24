@@ -42,7 +42,7 @@ class CustomDataset(Dataset):
 def evaluate(current_datetime, loadfrom, iso, learning_rate, epochs, batch_size):
     datetime_str = current_datetime
     click.echo(f"Received datetime: {datetime_str}")
-    
+
     ISOTOPE = iso
     lr = learning_rate
     num_epochs = epochs

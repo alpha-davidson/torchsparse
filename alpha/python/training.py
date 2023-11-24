@@ -43,7 +43,7 @@ class CustomDataset(Dataset):
 def training(current_datetime, loadfrom, iso, learning_rate, epochs, batch_size):
     datetime_str = current_datetime
     click.echo(f"Received datetime: {datetime_str}")
-    
+
     ISOTOPE = iso
     coords_train = np.load(loadfrom + ISOTOPE + "_coords_train.npy")
     coords_val = np.load(loadfrom + ISOTOPE + "_coords_val.npy")
@@ -73,7 +73,7 @@ def training(current_datetime, loadfrom, iso, learning_rate, epochs, batch_size)
     ).to(device)
 
     lr = learning_rate
-    
+
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     scaler = amp.GradScaler(enabled=amp_enabled)
@@ -196,7 +196,6 @@ def training(current_datetime, loadfrom, iso, learning_rate, epochs, batch_size)
         os.makedirs(MODEL_PATH)
         os.makedirs(LOSS_PATH)
 
-    # Assuming 'model' is your model instance and 'path' is the path where you want to save
     model_filename = f"model_epochs{num_epochs}_lr{lr}_train.pth"
     torch.save(model, MODEL_PATH + model_filename)
 
