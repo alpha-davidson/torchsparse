@@ -1,3 +1,5 @@
+# Particle Track Classification Using 3D Sparse Tensor Networks
+
 # TorchSparse for the AT-TPC 
 
 This repo build off of [TorchSparse](http://torchsparse.mit.edu/) for building AT-TPC models. The relevant files to ALPhA are in the **alpha** folder.
