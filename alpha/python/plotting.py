@@ -6,10 +6,11 @@ import numpy as np
 
 @click.command()
 @click.argument('current_datetime', type=str, required=True)
+@click.argument('epochs', type=int, required=True)
 
-def plotting(current_datetime):
+def plotting(current_datetime, epochs):
     datetime_str = current_datetime
-    print(f"Received datetime: {datetime_str}")
+    click.echo(f"Received datetime: {datetime_str}")
     
     LOSS_PATH = f"../training/{datetime_str}/loss_data/"
     
@@ -19,8 +20,7 @@ def plotting(current_datetime):
     training_losses = np.load(LOSS_PATH + tr_filename)
     validation_losses = np.load(LOSS_PATH + v_filename)
     
-    num_epochs = len(training_losses)
-    print(num_epochs)
+    num_epochs = epochs
     epochs = range(1, num_epochs + 1)
     
     plt.figure(figsize=(10, 6))
@@ -39,7 +39,7 @@ def plotting(current_datetime):
              
     output_filename = f"loss_plot_{datetime_str}.png"
     plt.savefig(PLOT_PATH + output_filename, dpi=300)
-    print(f"Plot saved as {output_filename}")
+    click.echo(f"Plot saved as {output_filename}")
 
 if __name__ == '__main__':
     plotting()
