@@ -1,11 +1,26 @@
 # Particle Track Classification Using 3D Sparse Tensor Networks
 
-The following repository is forked from the TorchSparse repository. The work done by ALPhA is inside the ALPhA folder. 
+# TorchSparse for the AT-TPC 
 
-# TorchSparse
+This repo build off of [TorchSparse](http://torchsparse.mit.edu/) for building AT-TPC models. The relevant files to ALPhA are in the **alpha** folder.
 
 TorchSparse is a high-performance neural network library for point cloud processing.
 
+## Required packages:
+- backports.cached_property
+- h5py
+- jupyterlab
+- matplotlib
+- numpy
+- scipy
+- tqdm
+- typing-extensions
+- wheel
+
+
+# TorchSparse Package
+
+## Links
 ### [website](http://torchsparse.mit.edu/) | [paper](https://arxiv.org/abs/2204.10319) | [presentation](https://www.youtube.com/watch?v=IIh4EwmcLUs) | [documents](http://torchsparse-docs.github.io/) | [pypi server](http://pypi.hanlab.ai/simple/torchsparse)
 
 
