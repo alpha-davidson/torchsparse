@@ -111,8 +111,8 @@ def evaluate(current_datetime, loadfrom, iso, learning_rate, epochs, batch_size)
                 outputs = model(t_inputs)
                 
                 labelsloss = t_labels.feats.squeeze(-1)
-                loss = criterion(outputs.feats, labelsloss)
-                _, predicted = torch.max(outputs.feats, 1)
+                loss = criterion(outputs, labelsloss)
+                _, predicted = torch.max(outputs, 1)
     
                 
                 all_preds = np.concatenate((all_preds, predicted.cpu().numpy()))

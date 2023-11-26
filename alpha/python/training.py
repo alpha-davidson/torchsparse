@@ -18,6 +18,7 @@ from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 from sklearn.preprocessing import StandardScaler
+from minkunet import MinkUNet
 
 class CustomDataset(Dataset):
     def __init__(self, coords, feats, labels):
@@ -67,22 +68,8 @@ def training(current_datetime, loadfrom, iso, learning_rate, epochs, batch_size)
     device = 'cuda'
     amp_enabled = True
 
-    model = nn.Sequential(
-        spnn.Conv3d(4, 32, 3),
-        spnn.BatchNorm(32),
-        spnn.ReLU(True),
-        spnn.Conv3d(32, 64, 2, stride=2),
-        spnn.BatchNorm(64),
-        spnn.ReLU(True),
-        spnn.Conv3d(64, 64, 2, stride=2, transposed=True),
-        spnn.BatchNorm(64),
-        spnn.ReLU(True),
-        spnn.Conv3d(64, 32, 3),
-        spnn.BatchNorm(32),
-        spnn.ReLU(True),
-        spnn.Conv3d(32, 7, 1),
-    ).to(device)
-
+    model = MinkUNet(num_classes=7).to(device)
+    
     lr = learning_rate
 
     criterion = nn.CrossEntropyLoss()
@@ -138,9 +125,10 @@ def training(current_datetime, loadfrom, iso, learning_rate, epochs, batch_size)
             tr_labels = sparse_collate(tr_labels_list).to(device=device)
             
             with amp.autocast(enabled=amp_enabled):
+                
                 tr_outputs = model(tr_inputs)
                 tr_labelsloss = tr_labels.feats.squeeze(-1)
-                tr_loss = criterion(tr_outputs.feats, tr_labelsloss)
+                tr_loss = criterion(tr_outputs, tr_labelsloss)
             
             running_loss += tr_loss.item()
         
@@ -192,7 +180,7 @@ def training(current_datetime, loadfrom, iso, learning_rate, epochs, batch_size)
                 with amp.autocast(enabled=True):
                     v_outputs = model(v_inputs)
                     v_labelsloss = v_labels.feats.squeeze(-1)
-                    v_loss = criterion(v_outputs.feats, v_labelsloss)
+                    v_loss = criterion(v_outputs, v_labelsloss)
                 
                 val_loss += v_loss.item()
                 
