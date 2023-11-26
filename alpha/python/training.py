@@ -30,6 +30,17 @@ class CustomDataset(Dataset):
 
     def __getitem__(self, idx):
         return self.coords[idx], self.feats[idx], self.labels[idx]
+
+class PrintShape(nn.Module):
+    def __init__(self, layer):
+        super(PrintShape, self).__init__()
+        self.layer = layer
+
+    def forward(self, x):
+        print(f"Before layer: {self.layer.__class__.__name__}, shape: {x.shape}")
+        x = self.layer(x)
+        print(f"After layer: {self.layer.__class__.__name__}, shape: {x.shape}")
+        return x
         
 @click.command()
 @click.argument('current_datetime', type=str, required=True)
