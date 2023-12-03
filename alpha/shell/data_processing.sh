@@ -11,4 +11,5 @@ cd ../python
 source /opt/conda/bin/activate sparse
 
 python data_proccessing.py $loadfrom $iso $h5
+echo
 python traintestsplit.py $loadfrom $iso

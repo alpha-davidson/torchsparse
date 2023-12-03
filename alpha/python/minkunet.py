@@ -79,9 +79,10 @@ class MinkUNet(nn.Module):
 
     def __init__(self, **kwargs):
         super().__init__()
-
+        
         cr = kwargs.get('cr', 1.0)
-        cs = [32, 32, 64, 128, 256, 256, 128, 96, 96]
+        cs = [32/8, 32/8, 64/8, 128/8, 256/8, 256/8, 128/8, 96/8, 96/8]
+        #[32, 32, 64, 128, 256, 256, 128, 96, 96]
         cs = [int(cr * x) for x in cs]
         self.run_up = kwargs.get('run_up', True)
 

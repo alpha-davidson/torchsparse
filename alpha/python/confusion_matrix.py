@@ -15,7 +15,7 @@ def confusionmatrix(current_datetime):
 
     all_labels = np.load(LOADFROM + "labels.npy")
     all_preds = np.load(LOADFROM + "preds.npy")
-    labels = [1, 2, 3, 4, 5, 6]
+    labels = [1, 2, 3]
 
     if not os.path.exists(MATRIX_PATH):
         os.makedirs(MATRIX_PATH)

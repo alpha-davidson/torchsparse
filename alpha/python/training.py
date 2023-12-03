@@ -1,24 +1,20 @@
 import os
 import sys
 import datetime
-import numpy as np
 import click
-
-import h5py
 import tqdm
+import numpy as np
 import torch
 import torchsparse
+
 from torch import nn
 from torch.utils.data import Dataset, DataLoader
 from torch.cuda import amp
 from torchsparse import SparseTensor, nn as spnn
 from torchsparse.utils.collate import sparse_collate
-from sklearn.metrics import confusion_matrix
 
-import matplotlib.pyplot as plt
-from mpl_toolkits import mplot3d
-from sklearn.preprocessing import StandardScaler
 from minkunet import MinkUNet
+from spvcnn import SPVCNN
 
 class CustomDataset(Dataset):
     def __init__(self, coords, feats, labels):
@@ -31,17 +27,6 @@ class CustomDataset(Dataset):
 
     def __getitem__(self, idx):
         return self.coords[idx], self.feats[idx], self.labels[idx]
-
-class PrintShape(nn.Module):
-    def __init__(self, layer):
-        super(PrintShape, self).__init__()
-        self.layer = layer
-
-    def forward(self, x):
-        print(f"Before layer: {self.layer.__class__.__name__}, shape: {x.shape}")
-        x = self.layer(x)
-        print(f"After layer: {self.layer.__class__.__name__}, shape: {x.shape}")
-        return x
         
 @click.command()
 @click.argument('current_datetime', type=str, required=True)
@@ -53,10 +38,10 @@ class PrintShape(nn.Module):
 
 
 def training(current_datetime, loadfrom, iso, learning_rate, epochs, batch_size):
-    datetime_str = current_datetime
-    click.echo(f"Received datetime: {datetime_str}")
+    # from click
+    ISOTOPE = iso   
 
-    ISOTOPE = iso
+    # load data
     coords_train = np.load(loadfrom + ISOTOPE + "_coords_train.npy")
     coords_val = np.load(loadfrom + ISOTOPE + "_coords_val.npy")
     feats_train = np.load(loadfrom + ISOTOPE + "_feats_train.npy")
@@ -68,50 +53,73 @@ def training(current_datetime, loadfrom, iso, learning_rate, epochs, batch_size)
     device = 'cuda'
     amp_enabled = True
 
-    model = MinkUNet(num_classes=7).to(device)
-    
+    model = MinkUNet(num_classes=4).to(device)
+
+    # from click
     lr = learning_rate
 
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     scaler = amp.GradScaler(enabled=amp_enabled)
 
+    # from click
     num_epochs = epochs
     batch_size = batch_size
-    
+
+    # data loaders
     train_set = CustomDataset(coords_train, feats_train, labels_train)
     train_loader = DataLoader(train_set, batch_size=batch_size)
-    
     val_set = CustomDataset(coords_val, feats_val, labels_val)
     val_loader = DataLoader(val_set, batch_size=batch_size)
-    
+
+    # used for loss calculations
     train_steps = len(train_loader)
     val_steps = len(val_loader)
-    
+
+    # loss arrays for plotting
     training_losses = []
     validation_losses = []
-    
-    for epoch in tqdm.tqdm(range(num_epochs)):
 
+    # saving model and model state
+    datetime_str = current_datetime
+    
+    CHECKPOINT_PATH = f"../training/{current_datetime}/checkpoints/"
+    if (not os.path.exists(CHECKPOINT_PATH)):
+       os.makedirs(CHECKPOINT_PATH)
+
+ 
+    
+    MODEL_PATH = f"../training/{datetime_str}/models/"
+    LOSS_PATH = f"../training/{datetime_str}/loss_data/"
+    
+    if (not os.path.exists(MODEL_PATH)) and (not os.path.exists(LOSS_PATH)):
+        os.makedirs(MODEL_PATH)
+        os.makedirs(LOSS_PATH)
+    
+    # training loop
+    for epoch in tqdm.tqdm(range(num_epochs)):
         model.train()
         running_loss = 0.0
-        
+
+        # batch loading
         for batch_idx, (batch_coords, batch_feats, batch_labels) in enumerate(train_loader):
             tr_inputs_list = []
             tr_labels_list = []
-            
+
+            # remove empty entries and convert data to sparse tensors
             for i in range(len(batch_coords)):
+                # remove empty entries
                 current_coords = batch_coords[i]
                 current_feats = batch_feats[i]
                 current_labels = batch_labels[i]
     
                 mask = ~(current_coords == 0).all(axis=1)
     
-                # Apply the mask to the array
                 current_coords = current_coords[mask]
                 current_feats = current_feats[mask]
                 current_labels = current_labels[mask]
-                
+
+                # convert to sparse tensor
                 current_coords = torch.tensor(current_coords, dtype=torch.int)
                 current_feats = torch.tensor(current_feats, dtype=torch.float)
                 current_labels = torch.tensor(current_labels, dtype=torch.long)
@@ -125,7 +133,6 @@ def training(current_datetime, loadfrom, iso, learning_rate, epochs, batch_size)
             tr_labels = sparse_collate(tr_labels_list).to(device=device)
             
             with amp.autocast(enabled=amp_enabled):
-                
                 tr_outputs = model(tr_inputs)
                 tr_labelsloss = tr_labels.feats.squeeze(-1)
                 tr_loss = criterion(tr_outputs, tr_labelsloss)
@@ -138,18 +145,24 @@ def training(current_datetime, loadfrom, iso, learning_rate, epochs, batch_size)
             scaler.update()
             
         training_losses.append(running_loss / train_steps)
+        click.echo()
         click.echo(f"[Epoch {epoch+1}] Running Loss: {running_loss / train_steps}")
+
     
+        checkpoint_filename = os.path.join(CHECKPOINT_PATH, f"checkpoint_epoch_{epoch+1}.pth.tar")
+
+        # validation
         model.eval()
         torchsparse.backends.benchmark = True  # type: ignore
         val_loss = 0.0
         
         with torch.no_grad():
+            # batch loading
             for batch_idx, (batch_coords, batch_feats, batch_labels) in enumerate(val_loader):
-                
                 v_inputs_list = []
                 v_labels_list = []
 
+                # remove empty entries and convert data to sparse tensors
                 for i in range(len(batch_coords)):
                     current_coords = batch_coords[i]
                     current_feats = batch_feats[i]
@@ -157,11 +170,11 @@ def training(current_datetime, loadfrom, iso, learning_rate, epochs, batch_size)
         
                     mask = ~(current_coords == 0).all(axis=1)
         
-                    # Apply the mask to the array
                     current_coords = current_coords[mask]
                     current_feats = current_feats[mask]
                     current_labels = current_labels[mask]
-                    
+
+                     # convert to sparse tensor
                     current_coords = torch.tensor(current_coords, dtype=torch.int)
                     current_feats = torch.tensor(current_feats, dtype=torch.float)
                     current_labels = torch.tensor(current_labels, dtype=torch.long)
@@ -173,9 +186,6 @@ def training(current_datetime, loadfrom, iso, learning_rate, epochs, batch_size)
                 
                 v_inputs = sparse_collate(v_inputs_list).to(device=device)
                 v_labels = sparse_collate(v_labels_list).to(device=device)
-
-                
-                n_correct = 0
                 
                 with amp.autocast(enabled=True):
                     v_outputs = model(v_inputs)
@@ -188,19 +198,13 @@ def training(current_datetime, loadfrom, iso, learning_rate, epochs, batch_size)
         click.echo(f"[Epoch {epoch+1}] Validation Loss: {val_loss / val_steps}")
     
     
-    MODEL_PATH = f"../training/{datetime_str}/models/"
-    LOSS_PATH = f"../training/{datetime_str}/loss_data/"
-    
-    if (not os.path.exists(MODEL_PATH)) and (not os.path.exists(LOSS_PATH)):
-        os.makedirs(MODEL_PATH)
-        os.makedirs(LOSS_PATH)
 
     model_filename = f"model_epochs{num_epochs}_lr{lr}_train.pth"
-    torch.save(model, MODEL_PATH + model_filename)
-
     state_filename = f"modelstate_epochs{num_epochs}_lr{lr}_train.pth"
+    torch.save(model, MODEL_PATH + model_filename)
     torch.save(model.state_dict(), MODEL_PATH + state_filename)
-    
+
+    # saving loss arrays for plotting
     tr_filename = f"trainloss_{datetime_str}.npy"
     v_filename = f"valloss_{datetime_str}.npy"
     np.save(LOSS_PATH + tr_filename, training_losses)

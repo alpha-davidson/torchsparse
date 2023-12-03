@@ -7,6 +7,7 @@ import click
 @click.argument('loadfrom', type=str, required=True)
 @click.argument('iso', type=str, required=True)
 @click.argument('h5', type=str, required=True)
+#@click.argument('data_type', type=int, required=True) # 0 - point classification, 1 - track counting
     
 def process_data(loadfrom, iso, h5):    
     LOADFROM = loadfrom
@@ -24,6 +25,7 @@ def process_data(loadfrom, iso, h5):
         
     ISOTOPE = iso
     file_name = ISOTOPE + '_w_key_index'
+    
     # **only doing this if the file doens't exist already, as the conversion takes a while**
     if not os.path.exists(LOADFROM + file_name + '.npy'):
         event_data = np.zeros((original_length, np.max(event_lens), 13), float) 
@@ -49,13 +51,30 @@ def process_data(loadfrom, iso, h5):
     newLen = np.sum(event_lens > 70)
     
     new_data = np.zeros((newLen, LENDETS, NUMCLASSES), float)
+    new_eventlens = np.zeros(newLen)
     new_data_index = 0
+
+    #for i in range(LENVTS):
+        #new_datanew_data[new_data_index] = sliced_data[i] 
+            #new_data_index += 1
     
+    # point classification
     for i in range(LENEVTS):
         if event_lens[i] > 70:
-            new_data[new_data_index] = sliced_data[i] 
-            new_data_index += 1
-
+            trackids = sliced_data[i][:, 4]
+            # track_id 5 and 6 are not real events so only proccess events without id 5 and 6
+            if not(np.any(trackids == 5) or np.any(trackids == 6)):
+                # track_id 3 and 4 are both protons, so relabel id 4 to 3
+                if (np.any(trackids == 4)):
+                    sliced_data[i][trackids == 4, 4] = 3
+                new_data[new_data_index] = sliced_data[i] 
+                new_eventlens[new_data_index] = event_lens[i]
+                new_data_index += 1
+    
+    non_zero_rows = np.any(new_data, axis=(1, 2))
+    new_data = new_data[non_zero_rows]
+    new_eventlens = new_eventlens[new_eventlens != 0]
+    
     # mins and max
     # Min values for x, y, z, amp: [-250.32000732 -252.37495422  -56.]
     # Max values for x, y, z, amp: [  250.32003784   252.37495422   894.4]
@@ -81,6 +100,7 @@ def process_data(loadfrom, iso, h5):
     np.save(LOADFROM + ISOTOPE + "_coords.npy", voxel_data)
     np.save(LOADFROM + ISOTOPE + "_feats.npy", features)
     np.save(LOADFROM + ISOTOPE + "_labels.npy", track_slice)
+    np.save(LOADFROM + ISOTOPE + "_eventlens.npy", new_eventlens)
 
     print("Coords Shape: ", end="")
     print(voxel_data.shape)
