@@ -9,7 +9,7 @@ loadfrom="../mg22simulated/" # where the data is stored
 iso="Mg22" # isotope of the data
 
 learning_rate=0.000001
-epochs=200
+epochs=1000
 batch_size=12
 
 echo "Current datetime: $current_datetime"

@@ -35,9 +35,9 @@ class CustomDataset(Dataset):
 @click.argument('learning_rate', type=float, required=True)
 @click.argument('epochs', type=int, required=True)
 @click.argument('batch_size', type=int, required=True)
+@click.argument('checkpoint_path', type=str, required=False, default=None)
 
-
-def training(current_datetime, loadfrom, iso, learning_rate, epochs, batch_size):
+def training(current_datetime, loadfrom, iso, learning_rate, epochs, batch_size, checkpoint_path):
     # from click
     ISOTOPE = iso   
 

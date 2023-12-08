@@ -53,11 +53,8 @@ def process_data(loadfrom, iso, h5):
     new_data = np.zeros((newLen, LENDETS, NUMCLASSES), float)
     new_eventlens = np.zeros(newLen)
     new_data_index = 0
-
-    #for i in range(LENVTS):
-        #new_datanew_data[new_data_index] = sliced_data[i] 
-            #new_data_index += 1
     
+    print("Before Removing Unwanted Events - Length:", len(new_data))
     # point classification
     for i in range(LENEVTS):
         if event_lens[i] > 70:
@@ -71,10 +68,27 @@ def process_data(loadfrom, iso, h5):
                 new_eventlens[new_data_index] = event_lens[i]
                 new_data_index += 1
     
+    # There are still events with no reaction even though we have largely filtered them out by using events
+    # with more than 70 points, but we need to filter them out as we do not care about non-reaction events
+    labels = new_data[:, :, -1]
+    events_to_keep = []
+    for i in range(len(new_data)):
+        unique_labels = np.unique(labels[i])
+        # Check if there are labels other than '0'
+        keep_event = np.any(unique_labels != 0)
+        events_to_keep.append(keep_event)
+
+    events_to_keep = np.array(events_to_keep)
+    new_data = new_data[events_to_keep]
+    new_eventlens = new_eventlens[events_to_keep]
+    print("After Removing Unwanted Events - Length:", len(new_data))
+    print()
+    
+    # Since newLen is before we removed events with unwanted track ids, we need to trim the new data array
     non_zero_rows = np.any(new_data, axis=(1, 2))
     new_data = new_data[non_zero_rows]
     new_eventlens = new_eventlens[new_eventlens != 0]
-    
+
     # mins and max
     # Min values for x, y, z, amp: [-250.32000732 -252.37495422  -56.]
     # Max values for x, y, z, amp: [  250.32003784   252.37495422   894.4]
