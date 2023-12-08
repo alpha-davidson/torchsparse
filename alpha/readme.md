@@ -5,9 +5,13 @@
 In this directory, there are three folders:
 
 alpha/
+
 ├── notebooks/
+
 ├── python/
+
 └── shell/
+
 
 The **notebooks** folder contains a notebook that visualizes the Mg22 data.
 
