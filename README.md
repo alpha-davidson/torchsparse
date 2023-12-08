@@ -7,7 +7,10 @@ This repo build off of [TorchSparse](http://torchsparse.mit.edu/) for building A
 TorchSparse is a high-performance neural network library for point cloud processing.
 
 ## Required packages:
+The installation steps are further below, but here are the required packages for running the scripts in the **alpha** folder:
+
 - backports.cached_property
+- click
 - h5py
 - jupyterlab
 - matplotlib
@@ -17,8 +20,11 @@ TorchSparse is a high-performance neural network library for point cloud process
 - typing-extensions
 - wheel
 
+The readme was forked from the main MIT TorchSparse team's repository in September 2023, so it is advised to go back to the MIT repository when following installation instructions and information on documentation.
 
-# TorchSparse Package
+***
+
+# TorchSparse Package (Original MIT GitHub Documentation)
 
 ## Links
 ### [website](http://torchsparse.mit.edu/) | [paper](https://arxiv.org/abs/2204.10319) | [presentation](https://www.youtube.com/watch?v=IIh4EwmcLUs) | [documents](http://torchsparse-docs.github.io/) | [pypi server](http://pypi.hanlab.ai/simple/torchsparse)
