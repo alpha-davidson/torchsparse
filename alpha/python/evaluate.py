@@ -18,6 +18,7 @@ from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score, accuracy_score, precision_recall_fscore_support
 
 class CustomDataset(Dataset):
     def __init__(self, coords, feats, labels):
@@ -126,13 +127,39 @@ def evaluate(current_datetime, loadfrom, iso, learning_rate, epochs, batch_size)
     
     if (not os.path.exists(EVAL_PATH)):
         os.makedirs(EVAL_PATH)
+        
+    labels_np = np.array(all_labels.astype(int))
+    preds_np = np.array(all_preds.astype(int))
     
     labels_filename = "labels.npy"
     preds_filename = "preds.npy"
-    np.save(EVAL_PATH + labels_filename, all_labels.astype(int))
-    np.save(EVAL_PATH + preds_filename, all_preds.astype(int))
-
+    np.save(EVAL_PATH + labels_filename, labels_np)
+    np.save(EVAL_PATH + preds_filename, preds_np)
+    
     click.echo('Finished Evaluation')
+    accuracy = accuracy_score(labels_np, preds_np)
+    
+    average_method = 'macro'  
+    precision, recall, f1, _ = precision_recall_fscore_support(labels_np, preds_np, average=average_method)
+    
+    # Create a dictionary to store all metrics
+    metrics = {
+        'Accuracy': accuracy,
+        'Precision': precision,
+        'Recall': recall,
+        'F1 Score': f1,
+    }
+
+    # Writing metrics to a text file
+    with open(EVAL_PATH + 'model_performance_metrics.txt', 'w') as file:
+        for key, value in metrics.items():
+            if isinstance(value, np.ndarray):
+                value_str = ', '.join([f'{v:.3f}' for v in value])
+                file.write(f'{key}: [{value_str}]\n')
+            else:
+                file.write(f'{key}: {value:.3f}\n')
+
+    click.echo('Finished Evaluation and Saved Metrics')
 
 if __name__ == '__main__':
     evaluate()

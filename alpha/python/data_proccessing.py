@@ -12,7 +12,6 @@ import click
 def process_data(loadfrom, iso, h5):    
     LOADFROM = loadfrom
     H5 = h5
-    # lines 27-54 are from pre-existing code written by Ben Wagner
     file = h5py.File(LOADFROM + H5, 'r')
     
     original_keys = list(file.keys())
